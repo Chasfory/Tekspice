@@ -1,0 +1,37 @@
+/*
+** EPITECH PROJECT, 2022
+** B-OOP-400-PAR-4-1-tekspice-laetitia.bousch
+** File description:
+** Output
+*/
+
+#ifndef OUTPUT_HPP_
+#define OUTPUT_HPP_
+
+#include "../IComponent.hpp"
+#include "../Link.hpp"
+
+#include <map>
+#include <memory>
+#include <vector>
+#include <iostream>
+#include <utility>
+
+namespace nts {
+    class Output : public IComponent{
+        public:
+            Output();
+            ~Output() = default;
+
+            void simulate(std::size_t tick) override;
+            nts::Tristate compute(std::size_t pin = 1) override;
+            void setLink(std::size_t pin, nts::IComponent &other, std::size_t otherPin) override;
+            void dump() const override;
+        private:
+            std::size_t p_tick;
+            std::map<size_t, Link> p_links;
+            std::vector<std::shared_ptr<IComponent>> p_components;
+    };
+}
+
+#endif /* !OUTPUT_HPP_ */
