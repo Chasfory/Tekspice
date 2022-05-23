@@ -58,6 +58,7 @@ int main(int ac, char **av)
 {
     if (ac != 2) {
         std::cout << "Usage: ./nanotekspice <filepath>" << std::endl;
+        return 84;
     }
     try {
         nts::ParserFile File(av[1]);

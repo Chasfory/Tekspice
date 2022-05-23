@@ -28,7 +28,7 @@ namespace nts {
         std::string name_other_component;
         size_t i = 0;
 
-        std::regex circuit_regex("^ *([^ ]*) *([^ ]*) *$");
+        std::regex circuit_regex("^ *([^ \n]+) +([^ \n]+) *$");
         std::smatch sm;
         std::regex_match(line, sm, circuit_regex);
         for (; i < sm.size(); ++i);
@@ -50,7 +50,7 @@ namespace nts {
         size_t other_pin;
         size_t i = 0;
 
-        std::regex circuit_regex("^ *(.*):([0-9]*) *(.*):([0-9]*) *$");
+        std::regex circuit_regex("^ *(.*):([0-9]+) *(.*):([0-9]+) *$");
         std::smatch sm;
         std::regex_match(line, sm, circuit_regex);
         for (; i < sm.size(); ++i);
@@ -72,12 +72,23 @@ namespace nts {
         p_circuit()
     {
         std::ifstream file;
+        std::stringstream ss;
+        std::string content;
         int option = 0;
 
         file.open(filepath);
         if (!file.is_open()) {
             throw std::invalid_argument(filepath + ": no such file or directory");
         }
+        std::regex circuit_regex("(?:(?:(?:[\r\n\t\f\v ]\\.[\r\n\t\f\v ]*chipsets[\r\n\t\f\v ]*:[\r\n\t\f\v ]*\n((?:[a-zA-Z0-9_\\-]+ [a-zA-Z0-9_\\-]+\n)+)))\n?(?:[\r\n\t\f\v ]*\\.[\r\n\t\f\v ]*links[\r\n\t\f\v ]*:[\r\n\t\f\v ]*\n((?:(?:(?:[a-zA-Z0-9_\\-]+:[0-9]+) ?){2}\n?)+)))");
+        std::smatch sm;
+        ss << file.rdbuf();
+        content = ss.str();
+        std::regex_search(content, sm, circuit_regex);
+        if (sm.empty()) {
+            throw std::invalid_argument(filepath + ": binary name is not good");
+        }
+        file.seekg(0);
         while (!file.eof()) {
             std::string line;
             getline(file, line);
@@ -91,9 +102,15 @@ namespace nts {
                 addComponentLinks(line);
             }
             if (line[0] != '#') {
-                if (line == ".chipsets:") {
+                std::regex circuit_regex("[\r\n\t\f\v ]*\\.[\r\n\t\f\v ]*chipsets[\r\n\t\f\v ]*:[\r\n\t\f\v ]*");
+                std::regex circuit_regex_bis("[\r\n\t\f\v ]*\\.[\r\n\t\f\v ]*links[\r\n\t\f\v ]*:[\r\n\t\f\v ]*");
+                std::smatch sm;
+                std::regex_match(line, sm, circuit_regex);
+                if (!sm.empty()) {
                     option = 1;
-                } else if (line == ".links:") {
+                }
+                std::regex_match(line, sm, circuit_regex_bis);
+                if (!sm.empty()) {
                     option = 2;
                 }
             }
